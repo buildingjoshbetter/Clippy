@@ -16,12 +16,15 @@ export class ParticleSystem {
   private particles: Particle[] = [];
   private emitTimers: Record<string, number> = {};
 
+  private static MAX_PARTICLES = 100;
+
   emit(p: Particle) {
+    if (this.particles.length >= ParticleSystem.MAX_PARTICLES) return;
     this.particles.push(p);
   }
 
   emitBurst(count: number, factory: () => Particle) {
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < count && this.particles.length < ParticleSystem.MAX_PARTICLES; i++) {
       this.particles.push(factory());
     }
   }

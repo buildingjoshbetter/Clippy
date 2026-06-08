@@ -36,37 +36,52 @@ function drawBody(
     ? blendColor(colors.shadow, tintColor, (tintAmount || 0) * 0.5)
     : colors.shadow;
 
+  // Outer wire loop — the main paperclip shape
   ctx.strokeStyle = bodyColor;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
+  // Draw the classic paperclip: outer loop, then inner return
   ctx.beginPath();
-  ctx.moveTo(-4, 16);
-  ctx.lineTo(-4, -10);
-  ctx.arc(0, -10, 4, Math.PI, 0, false);
-  ctx.lineTo(4, 12);
-  ctx.arc(0, 12, 4, 0, Math.PI, false);
-  ctx.lineTo(-4, -6);
-  ctx.arc(-1, -6, 3, Math.PI, 0, true);
-  ctx.lineTo(1, 8);
+  // Outer left side going up
+  ctx.moveTo(-5, 18);
+  ctx.lineTo(-5, -12);
+  // Top curve (outer)
+  ctx.bezierCurveTo(-5, -18, 5, -18, 5, -12);
+  // Outer right side going down
+  ctx.lineTo(5, 14);
+  // Bottom curve (outer)
+  ctx.bezierCurveTo(5, 19, -5, 19, -5, 14);
+  // Inner left side going back up
+  ctx.lineTo(-2, -8);
+  // Top inner curve
+  ctx.bezierCurveTo(-2, -13, 2, -13, 2, -8);
+  // Inner right side going back down
+  ctx.lineTo(2, 10);
   ctx.stroke();
 
-  // Highlight edge
-  ctx.strokeStyle = highlightColor;
-  ctx.lineWidth = 1;
+  // Metallic gradient highlight (left edge)
+  const grad = ctx.createLinearGradient(-6, 0, 6, 0);
+  grad.addColorStop(0, highlightColor);
+  grad.addColorStop(0.4, 'rgba(255,255,255,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-5, 14);
-  ctx.lineTo(-5, -8);
+  ctx.moveTo(-5, 16);
+  ctx.lineTo(-5, -10);
   ctx.stroke();
 
-  // Shadow edge
+  // Shadow (right edge)
   ctx.strokeStyle = shadowColor;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.4;
   ctx.beginPath();
-  ctx.moveTo(5, 10);
-  ctx.lineTo(5, -8);
+  ctx.moveTo(5, 12);
+  ctx.lineTo(5, -10);
   ctx.stroke();
+  ctx.globalAlpha = 1.0;
 }
 
 // ---------------------------------------------------------------------------
@@ -175,22 +190,35 @@ function drawEyes(
   }
 
   // Normal / surprised / looking_up — draw whites first
-  const eyeRadius = mode === 'surprised' ? 5 : 4;
+  const eyeRadius = mode === 'surprised' ? 8 : 7;
 
-  // Left eye white
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(-eyeSpacing + state.eyeOffsetX * 0.3, eyeY, eyeRadius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 0.5;
-  ctx.stroke();
+  for (const side of [-1, 1]) {
+    const ex = side * eyeSpacing + state.eyeOffsetX * 0.25;
 
-  // Right eye white
-  ctx.beginPath();
-  ctx.arc(eyeSpacing + state.eyeOffsetX * 0.3, eyeY, eyeRadius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+    // Recessed shadow behind eye
+    ctx.fillStyle = 'rgba(40, 40, 50, 0.2)';
+    ctx.beginPath();
+    ctx.arc(ex, eyeY + 0.5, eyeRadius + 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye white
+    ctx.fillStyle = '#fdfdff';
+    ctx.beginPath();
+    ctx.arc(ex, eyeY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Strong dark outline
+    ctx.strokeStyle = '#2a2a30';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // Inner shadow gradient for depth
+    const eyeGrad = ctx.createRadialGradient(ex, eyeY - 2, eyeRadius * 0.2, ex, eyeY + 1, eyeRadius);
+    eyeGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    eyeGrad.addColorStop(1, 'rgba(180,180,200,0.2)');
+    ctx.fillStyle = eyeGrad;
+    ctx.fill();
+  }
 
   if (!isBlinking) {
     let pupilOffX = state.eyeOffsetX;
@@ -198,42 +226,48 @@ function drawEyes(
 
     if (mode === 'looking_up') {
       pupilOffX = 1.5;
-      pupilOffY = -2;
+      pupilOffY = -2.5;
     }
 
-    const pupilR = 2 * pupilScale;
+    const pupilR = 3.2 * pupilScale;
 
-    // Left pupil
-    ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath();
-    ctx.arc(-eyeSpacing + pupilOffX, eyeY + pupilOffY, pupilR, 0, Math.PI * 2);
-    ctx.fill();
+    for (const side of [-1, 1]) {
+      const ex = side * eyeSpacing + pupilOffX;
+      const ey = eyeY + pupilOffY;
 
-    // Right pupil
-    ctx.beginPath();
-    ctx.arc(eyeSpacing + pupilOffX, eyeY + pupilOffY, pupilR, 0, Math.PI * 2);
-    ctx.fill();
+      // Iris (dark ring)
+      ctx.fillStyle = '#222228';
+      ctx.beginPath();
+      ctx.arc(ex, ey, pupilR + 0.8, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Pupil highlights
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-eyeSpacing + pupilOffX - 0.5, eyeY + pupilOffY - 0.5, 0.7 * pupilScale, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(eyeSpacing + pupilOffX - 0.5, eyeY + pupilOffY - 0.5, 0.7 * pupilScale, 0, Math.PI * 2);
-    ctx.fill();
+      // Pupil
+      ctx.fillStyle = '#0a0a0e';
+      ctx.beginPath();
+      ctx.arc(ex, ey, pupilR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Specular highlight (glossy, top-left)
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(ex - 1.0, ey - 1.2, 1.3 * pupilScale, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Secondary highlight (bottom-right, smaller)
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath();
+      ctx.arc(ex + 0.7, ey + 0.8, 0.6 * pupilScale, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else {
-    // Blink lines
+    // Smooth blink arcs
     ctx.strokeStyle = '#333';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(-eyeSpacing - 2, eyeY);
-    ctx.lineTo(-eyeSpacing + 2, eyeY);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(eyeSpacing - 2, eyeY);
-    ctx.lineTo(eyeSpacing + 2, eyeY);
-    ctx.stroke();
+    ctx.lineWidth = 1.5;
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.arc(side * eyeSpacing, eyeY, 4, 0, Math.PI);
+      ctx.stroke();
+    }
   }
 }
 

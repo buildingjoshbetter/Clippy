@@ -104,8 +104,21 @@ unsafe extern "C" fn event_callback(
 }
 
 pub fn start_event_monitor() -> bool {
+    // Initialize idle tracking to 5 seconds ago so the character starts awake
+    // but isTyping/isScrolling remain false (their thresholds are 2s and 500ms)
+    let startup = now_ms().saturating_sub(5000);
+    LAST_KEYSTROKE_MS.store(startup, Ordering::Relaxed);
+    LAST_SCROLL_MS.store(startup, Ordering::Relaxed);
+
+    try_start_monitor()
+}
+
+pub fn try_start_monitor() -> bool {
+    if MONITOR_RUNNING.load(Ordering::Relaxed) {
+        return true;
+    }
+
     if !is_accessibility_trusted() {
-        eprintln!("Accessibility permission not granted — keyboard monitoring disabled");
         return false;
     }
 

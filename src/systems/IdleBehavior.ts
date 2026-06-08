@@ -8,43 +8,34 @@ export interface IdleAction {
 let lastIdleAction = 0;
 let idleTier = 0; // tracks which idle tier we've reached
 
-export function getIdleAction(idleDurationMs: number, userName: string): IdleAction | null {
+export function getIdleAction(idleDurationMs: number, userName: string, overrides?: Partial<Record<string, string[]>>): IdleAction | null {
   const now = Date.now();
 
-  // Tier 0: 30s — occasional look around
-  if (idleDurationMs > 30000 && idleTier < 1) {
-    if (now - lastIdleAction > 15000) { // every 15s at most
-      lastIdleAction = now;
-      idleTier = 1;
-      return { type: 'look' };
-    }
+  // Tier 0: 2 min — occasional look around
+  if (idleDurationMs > 120000 && idleTier < 1) {
+    idleTier = 1;
+    lastIdleAction = now;
+    return { type: 'look' };
   }
 
-  // Tier 1: 60s — yawn + speech
-  if (idleDurationMs > 60000 && idleTier < 2) {
+  // Tier 1: 4 min — speech
+  if (idleDurationMs > 240000 && idleTier < 2) {
     idleTier = 2;
     lastIdleAction = now;
-    return { type: 'speech', speech: getRandomLine('idle', userName) };
+    return { type: 'speech', speech: getRandomLine('idle', userName, overrides) };
   }
 
-  // Tier 2: 180s — tap foot
-  if (idleDurationMs > 180000 && idleTier < 3) {
+  // Tier 2: 5 min — fall asleep
+  if (idleDurationMs > 300000 && idleTier < 3) {
     idleTier = 3;
-    lastIdleAction = now;
-    return { type: 'tap' };
-  }
-
-  // Tier 3: 300s — fall asleep
-  if (idleDurationMs > 300000 && idleTier < 4) {
-    idleTier = 4;
     lastIdleAction = now;
     return { type: 'sleep' };
   }
 
-  // Random periodic speech during idle (every 2-3 minutes after initial idle)
-  if (idleDurationMs > 30000 && idleTier >= 1 && idleTier < 4 && now - lastIdleAction > 120000 + Math.random() * 60000) {
+  // Random periodic speech during idle (every 5-8 minutes)
+  if (idleDurationMs > 120000 && idleTier >= 1 && idleTier < 3 && now - lastIdleAction > 300000 + Math.random() * 180000) {
     lastIdleAction = now;
-    return { type: 'speech', speech: getRandomLine('idle', userName) };
+    return { type: 'speech', speech: getRandomLine('idle', userName, overrides) };
   }
 
   return null;

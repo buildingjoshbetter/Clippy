@@ -1,30 +1,72 @@
 import { useState } from 'react';
 import { useClippyStore } from '../store';
 
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
 export function ContextMenu() {
   const store = useClippyStore();
   const [subMenu, setSubMenu] = useState<'reminder' | 'note' | 'pomodoro' | null>(null);
   const [reminderText, setReminderText] = useState('');
   const [reminderMinutes, setReminderMinutes] = useState(5);
+  const [reminderMode, setReminderMode] = useState<'in' | 'at'>('in');
+  const [reminderTime, setReminderTime] = useState('');
   const [noteText, setNoteText] = useState('');
 
   const { contextMenuX, contextMenuY, closeContextMenu } = store;
 
   const menuItemStyle: React.CSSProperties = {
-    padding: '6px 12px',
+    padding: '6px 14px',
     cursor: 'pointer',
-    fontSize: 11,
+    fontSize: 13,
+    fontFamily: FONT,
     whiteSpace: 'nowrap',
+    borderRadius: 6,
+    margin: '1px 4px',
+    transition: 'background 0.1s',
+    color: '#222',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    fontFamily: FONT,
+    fontSize: 12,
+    border: '1px solid rgba(0, 0, 0, 0.12)',
+    borderRadius: 6,
+    background: 'rgba(255, 255, 255, 0.8)',
+    padding: '5px 8px',
+    width: '100%',
+    boxSizing: 'border-box',
+    outline: 'none',
+  };
+
+  const btnStyle: React.CSSProperties = {
+    fontFamily: FONT,
+    fontSize: 11,
+    borderRadius: 6,
+    cursor: 'pointer',
+    padding: '4px 12px',
+    border: 'none',
+    fontWeight: 500,
   };
 
   const handleSetReminder = () => {
-    if (reminderText.trim()) {
-      const triggerAt = Date.now() + reminderMinutes * 60 * 1000;
-      store.addReminder(reminderText.trim(), triggerAt);
-      setReminderText('');
-      setReminderMinutes(5);
-      closeContextMenu();
+    if (!reminderText.trim()) return;
+    let triggerAt: number;
+    if (reminderMode === 'in') {
+      triggerAt = Date.now() + reminderMinutes * 60 * 1000;
+    } else {
+      const [hours, minutes] = reminderTime.split(':').map(Number);
+      const target = new Date();
+      target.setHours(hours, minutes, 0, 0);
+      if (target.getTime() <= Date.now()) {
+        target.setDate(target.getDate() + 1);
+      }
+      triggerAt = target.getTime();
     }
+    store.addReminder(reminderText.trim(), triggerAt);
+    setReminderText('');
+    setReminderMinutes(5);
+    setReminderTime('');
+    closeContextMenu();
   };
 
   const handlePinNote = () => {
@@ -61,7 +103,7 @@ export function ContextMenu() {
   };
 
   const handleAbout = () => {
-    store.showSpeech('Desktop Clippy v1.0 - Your pixel pal!', 'tip', 4000);
+    store.showSpeech('Clippy v1.0 — Your desktop companion', 'tip', 4000);
     closeContextMenu();
   };
 
@@ -80,13 +122,16 @@ export function ContextMenu() {
           position: 'fixed',
           left: contextMenuX,
           top: contextMenuY,
-          background: '#fffde6',
-          border: '2px solid #8b7e4b',
-          fontFamily: '"Courier New", monospace',
-          imageRendering: 'pixelated',
-          boxShadow: '3px 3px 0px rgba(0,0,0,0.25)',
-          minWidth: 180,
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          borderRadius: 10,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08)',
+          minWidth: 190,
           padding: '4px 0',
+          fontFamily: FONT,
+          animation: 'menuIn 0.12s ease-out',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -94,7 +139,7 @@ export function ContextMenu() {
           <>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={() => setSubMenu('reminder')}
             >
@@ -102,7 +147,7 @@ export function ContextMenu() {
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={() => setSubMenu('note')}
             >
@@ -110,24 +155,24 @@ export function ContextMenu() {
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={() => setSubMenu('pomodoro')}
             >
-              Pomodoro &gt;
+              Pomodoro
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleStretchNow}
             >
               Stretch Now
             </div>
-            <div style={{ height: 1, background: '#d4d0b8', margin: '4px 8px' }} />
+            <div style={{ height: 1, background: 'rgba(0, 0, 0, 0.08)', margin: '4px 8px' }} />
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleSettings}
             >
@@ -135,7 +180,7 @@ export function ContextMenu() {
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleAbout}
             >
@@ -145,71 +190,77 @@ export function ContextMenu() {
         )}
 
         {subMenu === 'reminder' && (
-          <div style={{ padding: '8px 12px' }}>
-            <div style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 6, letterSpacing: 1 }}>SET REMINDER</div>
+          <div style={{ padding: '10px 14px', minWidth: 210 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 8, letterSpacing: 0.3 }}>
+              Set Reminder
+            </div>
             <input
               type="text"
               value={reminderText}
               onChange={(e) => setReminderText(e.target.value)}
-              placeholder="Reminder text..."
+              placeholder="What should I remind you?"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleSetReminder()}
-              style={{
-                fontFamily: '"Courier New", monospace',
-                fontSize: 10,
-                border: '2px solid #c8c080',
-                background: '#fff',
-                padding: '3px 6px',
-                width: '100%',
-                boxSizing: 'border-box',
-                outline: 'none',
-                marginBottom: 6,
-              }}
+              style={{ ...inputStyle, marginBottom: 8 }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, marginBottom: 6 }}>
-              <span>In</span>
-              <input
-                type="number"
-                min={1}
-                max={480}
-                value={reminderMinutes}
-                onChange={(e) => setReminderMinutes(Number(e.target.value))}
+            <div style={{ display: 'flex', gap: 2, marginBottom: 8 }}>
+              <button
+                onClick={() => setReminderMode('in')}
                 style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: 10,
-                  border: '2px solid #c8c080',
-                  background: '#fff',
-                  padding: '2px 4px',
-                  width: 40,
-                  outline: 'none',
+                  ...btnStyle,
+                  flex: 1,
+                  background: reminderMode === 'in' ? '#007aff' : 'rgba(0, 0, 0, 0.06)',
+                  color: reminderMode === 'in' ? '#fff' : '#555',
                 }}
-              />
-              <span>min</span>
+              >
+                In minutes
+              </button>
+              <button
+                onClick={() => setReminderMode('at')}
+                style={{
+                  ...btnStyle,
+                  flex: 1,
+                  background: reminderMode === 'at' ? '#007aff' : 'rgba(0, 0, 0, 0.06)',
+                  color: reminderMode === 'at' ? '#fff' : '#555',
+                }}
+              >
+                At time
+              </button>
             </div>
+            {reminderMode === 'in' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 10, color: '#555' }}>
+                <span>In</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={480}
+                  value={reminderMinutes}
+                  onChange={(e) => setReminderMinutes(Number(e.target.value))}
+                  style={{ ...inputStyle, width: 55, textAlign: 'center' }}
+                />
+                <span>min</span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, marginBottom: 10, color: '#555' }}>
+                <span>At</span>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  style={{ ...inputStyle, width: 110 }}
+                />
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 onClick={handleSetReminder}
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: 10,
-                  background: '#e8e8d0',
-                  border: '2px solid #c8c080',
-                  cursor: 'pointer',
-                  padding: '2px 8px',
-                }}
+                style={{ ...btnStyle, background: '#007aff', color: '#fff' }}
               >
                 Set
               </button>
               <button
                 onClick={() => setSubMenu(null)}
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: 10,
-                  background: '#f0f0f0',
-                  border: '2px solid #ccc',
-                  cursor: 'pointer',
-                  padding: '2px 8px',
-                }}
+                style={{ ...btnStyle, background: 'rgba(0, 0, 0, 0.06)', color: '#555' }}
               >
                 Back
               </button>
@@ -218,52 +269,30 @@ export function ContextMenu() {
         )}
 
         {subMenu === 'note' && (
-          <div style={{ padding: '8px 12px' }}>
-            <div style={{ fontSize: 10, fontWeight: 'bold', marginBottom: 6, letterSpacing: 1 }}>PIN NOTE</div>
+          <div style={{ padding: '10px 14px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 8, letterSpacing: 0.3 }}>
+              Pin Note
+            </div>
             <input
               type="text"
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Note text..."
+              placeholder="Type your note..."
               autoFocus
               maxLength={50}
               onKeyDown={(e) => e.key === 'Enter' && handlePinNote()}
-              style={{
-                fontFamily: '"Courier New", monospace',
-                fontSize: 10,
-                border: '2px solid #c8c080',
-                background: '#fff',
-                padding: '3px 6px',
-                width: '100%',
-                boxSizing: 'border-box',
-                outline: 'none',
-                marginBottom: 6,
-              }}
+              style={{ ...inputStyle, marginBottom: 8 }}
             />
             <div style={{ display: 'flex', gap: 6 }}>
               <button
                 onClick={handlePinNote}
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: 10,
-                  background: '#e8e8d0',
-                  border: '2px solid #c8c080',
-                  cursor: 'pointer',
-                  padding: '2px 8px',
-                }}
+                style={{ ...btnStyle, background: '#007aff', color: '#fff' }}
               >
                 Pin
               </button>
               <button
                 onClick={() => setSubMenu(null)}
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: 10,
-                  background: '#f0f0f0',
-                  border: '2px solid #ccc',
-                  cursor: 'pointer',
-                  padding: '2px 8px',
-                }}
+                style={{ ...btnStyle, background: 'rgba(0, 0, 0, 0.06)', color: '#555' }}
               >
                 Back
               </button>
@@ -275,7 +304,7 @@ export function ContextMenu() {
           <div style={{ padding: '4px 0' }}>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleStartFocus}
             >
@@ -283,7 +312,7 @@ export function ContextMenu() {
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleStartBreak}
             >
@@ -291,22 +320,30 @@ export function ContextMenu() {
             </div>
             <div
               style={menuItemStyle}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#e8e0b0')}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleStopPomodoro}
             >
               Stop
             </div>
-            <div style={{ height: 1, background: '#d4d0b8', margin: '4px 8px' }} />
+            <div style={{ height: 1, background: 'rgba(0, 0, 0, 0.08)', margin: '4px 8px' }} />
             <div
-              style={{ ...menuItemStyle, color: '#888', fontSize: 10 }}
+              style={{ ...menuItemStyle, color: '#888', fontSize: 12 }}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'rgba(0, 0, 0, 0.06)')}
+              onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={() => setSubMenu(null)}
             >
-              &lt; Back
+              Back
             </div>
           </div>
         )}
       </div>
+      <style>{`
+        @keyframes menuIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

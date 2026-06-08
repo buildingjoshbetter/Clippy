@@ -7,11 +7,8 @@ struct ToolDetector {
     process_patterns: &'static [&'static str],
 }
 
+// Claude Code is handled via CLI hooks, not process detection
 const TOOLS: &[ToolDetector] = &[
-    ToolDetector {
-        name: "claude-code",
-        process_patterns: &["claude"],
-    },
     ToolDetector {
         name: "codex",
         process_patterns: &["codex"],
@@ -82,6 +79,24 @@ pub fn start_process_watcher() {
             };
 
             if status_changed {
+                // Don't overwrite hook-provided status (claude-code) if it was written recently
+                if let Some(home) = dirs::home_dir() {
+                    let status_path = home.join(".desktop-clippy").join("ai-status.json");
+                    if let Ok(content) = fs::read_to_string(&status_path) {
+                        if content.contains("\"claude-code\"") {
+                            if let Ok(meta) = fs::metadata(&status_path) {
+                                if let Ok(modified) = meta.modified() {
+                                    if modified.elapsed().unwrap_or_default().as_secs() < 30 {
+                                        was_active = active_tool;
+                                        thread::sleep(Duration::from_secs(2));
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 let status = if active_tool.is_some() {
                     "thinking"
                 } else {

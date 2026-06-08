@@ -2,7 +2,7 @@ mod commands;
 mod input;
 mod process;
 
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 #[cfg(target_os = "macos")]
 use cocoa::appkit::{NSApplication, NSApplicationActivationPolicy, NSWindow};
@@ -36,6 +36,7 @@ fn setup_macos_transparency(app: &tauri::App) {
 }
 
 fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
+    use tauri::image::Image;
     use tauri::menu::{Menu, MenuItem};
     use tauri::tray::TrayIconBuilder;
 
@@ -46,9 +47,16 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
 
     let menu = Menu::with_items(app, &[&show_item, &hide_item, &settings_item, &quit_item])?;
 
+    let tray_icon = Image::new_owned(
+        include_bytes!("../icons/tray-icon-44x44.rgba").to_vec(),
+        44, 44,
+    );
+
     TrayIconBuilder::new()
+        .icon(tray_icon)
+        .icon_as_template(true)
         .menu(&menu)
-        .tooltip("Desktop Clippy")
+        .tooltip("Clippy")
         .on_menu_event(|app, event| match event.id.as_ref() {
             "show" => {
                 if let Some(window) = app.get_webview_window("main") {
@@ -61,7 +69,10 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
                 }
             }
             "settings" => {
-                // TODO: open settings window
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.emit("open-settings", ());
+                }
             }
             "quit" => {
                 app.exit(0);
@@ -80,8 +91,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_input_state,
             commands::update_character_bounds,
+            commands::update_interactive_regions,
             commands::set_click_through,
             commands::request_accessibility,
+            commands::retry_event_monitor,
             commands::read_ai_status,
             commands::get_ai_tool_status,
             commands::load_config,
@@ -92,6 +105,28 @@ pub fn run() {
             setup_macos_transparency(app);
 
             setup_system_tray(app)?;
+
+            // Re-assert always-on-top periodically and on focus changes
+            let window = app.get_webview_window("main").unwrap();
+            window.on_window_event(move |event| {
+                match event {
+                    tauri::WindowEvent::Focused(_) | tauri::WindowEvent::Resized(_) => {
+                        // Re-assert overlay state after focus/resize events
+                    }
+                    _ => {}
+                }
+            });
+
+            // Periodically re-assert always-on-top (handles fullscreen/Mission Control recovery)
+            let app_handle_overlay = app.handle().clone();
+            std::thread::spawn(move || {
+                loop {
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    if let Some(w) = app_handle_overlay.get_webview_window("main") {
+                        let _ = w.set_always_on_top(true);
+                    }
+                }
+            });
 
             // Start keyboard/scroll event monitoring
             input::keyboard::start_event_monitor();

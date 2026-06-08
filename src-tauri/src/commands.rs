@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::command;
@@ -11,6 +11,7 @@ pub struct InputState {
     keystroke_count: u64,
     last_scroll_ms: u64,
     scroll_count: u64,
+    last_mouse_move_ms: u64,
     now_ms: u64,
     accessibility_granted: bool,
 }
@@ -32,6 +33,7 @@ pub fn get_input_state() -> InputState {
         keystroke_count: key_count,
         last_scroll_ms: last_scroll,
         scroll_count,
+        last_mouse_move_ms: crate::input::mouse::get_last_mouse_move_ms(),
         now_ms: now,
         accessibility_granted: crate::input::keyboard::is_monitor_running(),
     }
@@ -56,6 +58,11 @@ pub fn request_accessibility() -> bool {
 }
 
 #[command]
+pub fn retry_event_monitor() -> bool {
+    crate::input::keyboard::try_start_monitor()
+}
+
+#[command]
 pub fn read_ai_status() -> Option<String> {
     let home = dirs::home_dir()?;
     let status_path = home.join(".desktop-clippy").join("ai-status.json");
@@ -76,6 +83,20 @@ pub fn save_config(config: String) -> Result<(), String> {
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let config_path = dir.join("config.json");
     fs::write(config_path, config).map_err(|e| e.to_string())
+}
+
+#[derive(Deserialize)]
+pub struct Region {
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+}
+
+#[command]
+pub fn update_interactive_regions(regions: Vec<Region>) {
+    let tuples: Vec<(f64, f64, f64, f64)> = regions.iter().map(|r| (r.x, r.y, r.w, r.h)).collect();
+    crate::input::mouse::update_regions(tuples);
 }
 
 #[command]

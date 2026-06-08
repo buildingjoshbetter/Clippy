@@ -52,3 +52,26 @@ export function playStretch() {
     setTimeout(() => playBlip(freq, 0.2, 0.06), i * 200);
   });
 }
+
+export function playMarioCoin() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+
+  // Mario coin sound — B5 then E6
+  const coin = [
+    { freq: 988,  start: 0,    dur: 0.08 },  // B5
+    { freq: 1319, start: 0.08, dur: 0.35 },  // E6 (sustained)
+  ];
+
+  for (const n of coin) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = n.freq;
+    gain.gain.setValueAtTime(0.1, t + n.start);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + n.start + n.dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t + n.start);
+    osc.stop(t + n.start + n.dur + 0.01);
+  }
+}

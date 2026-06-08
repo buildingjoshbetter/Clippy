@@ -1,7 +1,7 @@
 {
-  "productName": "Desktop Clippy",
+  "productName": "Clippy",
   "version": "0.1.0",
-  "identifier": "com.desktop-clippy.app",
+  "identifier": "com.desktopclippy.pet",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Desktop Clippy",
+        "title": "Clippy",
         "width": 1920,
         "height": 1080,
         "x": 0,

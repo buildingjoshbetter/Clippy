@@ -12,6 +12,7 @@ export interface InputState {
   isTyping: boolean;
   isTypingFast: boolean;
   isScrolling: boolean;
+  kps: number;
   idleDurationMs: number;
   accessibilityGranted: boolean;
 }
@@ -23,6 +24,7 @@ interface RawInputState {
   keystroke_count: number;
   last_scroll_ms: number;
   scroll_count: number;
+  last_mouse_move_ms: number;
   now_ms: number;
   accessibility_granted: boolean;
 }
@@ -33,12 +35,13 @@ export function useInput(pollIntervalMs = 33): InputState {
     lastKeystrokeMs: 0, keystrokeCount: 0,
     lastScrollMs: 0, scrollCount: 0,
     isTyping: false, isTypingFast: false, isScrolling: false,
-    idleDurationMs: 99999, accessibilityGranted: false,
+    kps: 0, idleDurationMs: 99999, accessibilityGranted: false,
   });
 
   const prevCursorRef = useRef({ x: 0, y: 0 });
   const prevTimeRef = useRef(Date.now());
   const prevKeystrokeCountRef = useRef(0);
+  const smoothKpsRef = useRef(0);
 
   useEffect(() => {
     let mounted = true;
@@ -53,12 +56,13 @@ export function useInput(pollIntervalMs = 33): InputState {
         const dy = raw.cursor_y - prevCursorRef.current.y;
         const velocity = Math.sqrt(dx * dx + dy * dy) / (dt / 1000);
 
-        // Calculate keystrokes per second over the last second
         const recentKeys = raw.keystroke_count - prevKeystrokeCountRef.current;
-        const kps = recentKeys / (dt / 1000);
+        const rawKps = recentKeys / (dt / 1000);
+        smoothKpsRef.current = smoothKpsRef.current * 0.7 + rawKps * 0.3;
 
-        const lastActivity = Math.max(raw.last_keystroke_ms, raw.last_scroll_ms);
+        const lastActivity = Math.max(raw.last_keystroke_ms, raw.last_scroll_ms, raw.last_mouse_move_ms);
         const idleMs = raw.now_ms - lastActivity;
+        const recentKeystroke = (raw.now_ms - raw.last_keystroke_ms) < 2000;
 
         setState({
           cursorX: raw.cursor_x,
@@ -68,9 +72,10 @@ export function useInput(pollIntervalMs = 33): InputState {
           keystrokeCount: raw.keystroke_count,
           lastScrollMs: raw.last_scroll_ms,
           scrollCount: raw.scroll_count,
-          isTyping: (raw.now_ms - raw.last_keystroke_ms) < 2000,
-          isTypingFast: kps > 6, // ~120 WPM
+          isTyping: recentKeystroke && smoothKpsRef.current > 1.5,
+          isTypingFast: smoothKpsRef.current > 8,
           isScrolling: (raw.now_ms - raw.last_scroll_ms) < 500,
+          kps: smoothKpsRef.current,
           idleDurationMs: idleMs,
           accessibilityGranted: raw.accessibility_granted,
         });

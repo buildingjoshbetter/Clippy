@@ -1,25 +1,11 @@
 import { useRef, useEffect } from 'react';
 import { useClippyStore } from '../store';
-import { drawClippy } from '../engine/ClippyRenderer';
+import { getCharacter } from '../engine/characters';
 import { ParticleSystem } from '../engine/ParticleSystem';
 
 export function ClippyCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particleSystemRef = useRef<ParticleSystem>(new ParticleSystem());
-  const {
-    characterX,
-    characterY,
-    eyeOffsetX,
-    eyeOffsetY,
-    bodyTilt,
-    bodySquash,
-    bodyStretch,
-    animState,
-    scale,
-    characterVariant,
-  } = useClippyStore();
-
-  const NATIVE_SIZE = 48;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,41 +18,46 @@ export function ClippyCanvas() {
     let animFrame: number;
     let lastTime = 0;
 
-    const MIN_FRAME_DT = 33; // ~30fps cap
+    const MIN_FRAME_DT = 33;
 
     const render = (time: number) => {
       const dt = time - lastTime;
 
-      // Frame-limit to 30fps — skip if too soon
       if (dt < MIN_FRAME_DT) {
         animFrame = requestAnimationFrame(render);
         return;
       }
       lastTime = time;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const state = useClippyStore.getState();
 
-      // Draw character directly at full resolution for smooth vector look
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
-      const drawSize = NATIVE_SIZE * scale;
+
+      const character = getCharacter(state.characterVariant);
+      const nativeSize = character.nativeSize;
+      const drawSize = nativeSize * state.scale;
+
       ctx.save();
-      ctx.translate(characterX, characterY);
-      ctx.scale(scale, scale);
-      drawClippy(ctx, {
-        eyeOffsetX,
-        eyeOffsetY,
-        bodyTilt,
-        bodySquash,
-        bodyStretch,
-        animState,
+      ctx.translate(state.characterX, state.characterY);
+      ctx.scale(state.scale, state.scale);
+
+      const drawState = {
+        eyeOffsetX: state.eyeOffsetX,
+        eyeOffsetY: state.eyeOffsetY,
+        bodyTilt: state.bodyTilt,
+        bodySquash: state.bodySquash,
+        bodyStretch: state.bodyStretch,
+        animState: state.animState,
         time,
-      }, characterVariant);
+      };
+
+      character.draw(ctx, drawState);
       ctx.restore();
 
-      // Particle system — emit, update, draw in world space
-      const centerX = characterX + drawSize / 2;
-      const centerY = characterY + drawSize / 2;
-      particles.emitForState(animState, centerX, centerY, time);
+      const centerX = state.characterX;
+      const centerY = state.characterY;
+      particles.emitForState(state.animState, centerX, centerY, time);
       particles.update(dt);
       particles.draw(ctx);
 
@@ -85,7 +76,7 @@ export function ClippyCanvas() {
       cancelAnimationFrame(animFrame);
       window.removeEventListener('resize', handleResize);
     };
-  }, [characterX, characterY, eyeOffsetX, eyeOffsetY, bodyTilt, bodySquash, bodyStretch, animState, scale, characterVariant]);
+  }, []);
 
   return (
     <canvas

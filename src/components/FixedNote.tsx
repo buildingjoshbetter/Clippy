@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useClippyStore } from '../store';
 
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
 export function FixedNote() {
   const { characterX, characterY, scale, pinnedNote, setPinnedNote } = useClippyStore();
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(pinnedNote);
 
-  const noteX = characterX + (48 * scale) / 2 - 50;
-  const noteY = characterY - 44;
+  const half = (48 * scale) / 2;
+  const noteX = characterX - 80;
+  const noteY = characterY - half - 44;
 
   const truncated = pinnedNote.length > 50 ? pinnedNote.slice(0, 47) + '...' : pinnedNote;
 
@@ -27,11 +30,8 @@ export function FixedNote() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setEditing(false);
-    }
+    if (e.key === 'Enter') handleSave();
+    else if (e.key === 'Escape') setEditing(false);
   };
 
   if (editing) {
@@ -41,14 +41,16 @@ export function FixedNote() {
           position: 'fixed',
           left: noteX,
           top: noteY,
-          background: '#fffde6',
-          border: '2px solid #c8c080',
-          padding: '4px 6px',
-          fontFamily: '"Courier New", monospace',
-          fontSize: 10,
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          borderRadius: 8,
+          padding: '6px 8px',
+          fontFamily: FONT,
+          fontSize: 12,
           pointerEvents: 'auto',
-          imageRendering: 'pixelated',
-          boxShadow: '2px 2px 0px rgba(0,0,0,0.15)',
+          boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)',
           zIndex: 9997,
           display: 'flex',
           gap: 4,
@@ -63,41 +65,47 @@ export function FixedNote() {
           autoFocus
           maxLength={50}
           style={{
-            fontFamily: '"Courier New", monospace',
-            fontSize: 10,
-            border: '1px solid #c8c080',
+            fontFamily: FONT,
+            fontSize: 12,
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            borderRadius: 5,
             background: '#fff',
-            padding: '2px 4px',
-            width: 120,
+            padding: '3px 6px',
+            width: 130,
             outline: 'none',
           }}
         />
         <button
           onClick={handleSave}
           style={{
-            fontFamily: '"Courier New", monospace',
-            fontSize: 9,
-            background: '#e8e8d0',
-            border: '1px solid #c8c080',
+            fontFamily: FONT,
+            fontSize: 10,
+            fontWeight: 500,
+            background: '#007aff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 5,
             cursor: 'pointer',
-            padding: '1px 4px',
+            padding: '3px 8px',
           }}
         >
-          ok
+          Save
         </button>
         <button
           onClick={handleRemove}
           style={{
-            fontFamily: '"Courier New", monospace',
-            fontSize: 9,
-            background: '#ffe0e0',
-            border: '1px solid #c08080',
+            fontFamily: FONT,
+            fontSize: 10,
+            fontWeight: 500,
+            background: 'rgba(255, 59, 48, 0.1)',
+            color: '#ff3b30',
+            border: 'none',
+            borderRadius: 5,
             cursor: 'pointer',
-            padding: '1px 4px',
-            color: '#cc4444',
+            padding: '3px 8px',
           }}
         >
-          del
+          Del
         </button>
       </div>
     );
@@ -110,18 +118,20 @@ export function FixedNote() {
         position: 'fixed',
         left: noteX,
         top: noteY,
-        background: '#fffde6',
-        border: '2px solid #c8c080',
-        padding: '3px 8px',
-        fontFamily: '"Courier New", monospace',
-        fontSize: 10,
-        color: '#555',
+        background: 'rgba(255, 252, 230, 0.92)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
+        borderRadius: 6,
+        padding: '4px 10px',
+        fontFamily: FONT,
+        fontSize: 11,
+        color: '#444',
         pointerEvents: 'auto',
-        imageRendering: 'pixelated',
-        boxShadow: '2px 2px 0px rgba(0,0,0,0.15)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
         zIndex: 9997,
         cursor: 'pointer',
-        maxWidth: 160,
+        maxWidth: 180,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',

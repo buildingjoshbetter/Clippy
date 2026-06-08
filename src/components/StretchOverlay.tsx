@@ -17,7 +17,9 @@ export function StretchOverlay({ onDismiss, autoDismissMs = 10000 }: Props) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.3)',
+        background: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -25,42 +27,48 @@ export function StretchOverlay({ onDismiss, autoDismissMs = 10000 }: Props) {
         pointerEvents: 'auto',
         zIndex: 10000,
         cursor: 'pointer',
+        animation: 'stretchIn 0.3s ease-out',
       }}
     >
       <div
         style={{
-          fontFamily: '"Courier New", monospace',
-          fontSize: 48,
-          fontWeight: 'bold',
-          color: '#fffde6',
-          textShadow: '4px 4px 0px rgba(0,0,0,0.5)',
-          imageRendering: 'pixelated',
-          letterSpacing: 4,
-          marginBottom: 16,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontSize: 42,
+          fontWeight: 700,
+          color: '#fff',
+          textShadow: '0 2px 20px rgba(0, 0, 0, 0.3)',
+          letterSpacing: -0.5,
+          marginBottom: 12,
         }}
       >
-        TIME TO STRETCH!
+        Time to stretch!
       </div>
       <div
         style={{
-          fontFamily: '"Courier New", monospace',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           fontSize: 16,
-          color: '#e0e0d0',
-          textShadow: '2px 2px 0px rgba(0,0,0,0.5)',
+          color: 'rgba(255, 255, 255, 0.8)',
+          fontWeight: 400,
         }}
       >
         Stand up, reach for the sky, touch your toes
       </div>
       <div
         style={{
-          fontFamily: '"Courier New", monospace',
-          fontSize: 11,
-          color: '#999',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontSize: 12,
+          color: 'rgba(255, 255, 255, 0.5)',
           marginTop: 24,
         }}
       >
         click anywhere to dismiss
       </div>
+      <style>{`
+        @keyframes stretchIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

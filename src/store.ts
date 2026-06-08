@@ -122,7 +122,7 @@ export const useClippyStore = create<ClippyStore>((set, get) => ({
 
   userName: '',
   setUserName: (name) => set({ userName: name }),
-  characterVariant: 'classic',
+  characterVariant: 'clippy',
   setCharacterVariant: (variant) => set({ characterVariant: variant }),
   scale: 3,
   setScale: (scale) => set({ scale }),
