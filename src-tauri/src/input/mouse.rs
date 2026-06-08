@@ -1,6 +1,6 @@
 use core_graphics::event::CGEvent;
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
@@ -9,6 +9,7 @@ use tauri::Manager;
 static INTERACTIVE_REGIONS: Mutex<Vec<(f64, f64, f64, f64)>> = Mutex::new(Vec::new());
 static CURSOR_POS: Mutex<(f64, f64)> = Mutex::new((0.0, 0.0));
 static LAST_MOUSE_MOVE_MS: AtomicU64 = AtomicU64::new(0);
+static FORCE_INTERACTIVE: AtomicBool = AtomicBool::new(false);
 
 fn now_ms() -> u64 {
     std::time::SystemTime::now()
@@ -55,18 +56,27 @@ pub fn update_regions(new_regions: Vec<(f64, f64, f64, f64)>) {
     }
 }
 
+pub fn set_force_interactive(force: bool) {
+    FORCE_INTERACTIVE.store(force, Ordering::Relaxed);
+}
+
 pub fn start_hit_test_polling(app_handle: tauri::AppHandle) {
     LAST_MOUSE_MOVE_MS.store(now_ms().saturating_sub(5000), Ordering::Relaxed);
     thread::spawn(move || {
         let mut was_over = false;
         loop {
-            let (cx, cy) = get_cursor_position();
-            let is_over = if let Ok(regions) = INTERACTIVE_REGIONS.lock() {
-                regions.iter().any(|(bx, by, bw, bh)| {
-                    cx >= *bx && cx <= *bx + *bw && cy >= *by && cy <= *by + *bh
-                })
+            let force = FORCE_INTERACTIVE.load(Ordering::Relaxed);
+            let is_over = if force {
+                true
             } else {
-                false
+                let (cx, cy) = get_cursor_position();
+                if let Ok(regions) = INTERACTIVE_REGIONS.lock() {
+                    regions.iter().any(|(bx, by, bw, bh)| {
+                        cx >= *bx && cx <= *bx + *bw && cy >= *by && cy <= *by + *bh
+                    })
+                } else {
+                    false
+                }
             };
 
             if is_over != was_over {
@@ -74,6 +84,10 @@ pub fn start_hit_test_polling(app_handle: tauri::AppHandle) {
                     let _ = window.set_ignore_cursor_events(!is_over);
                 }
                 was_over = is_over;
+            }
+
+            if !force {
+                let _ = get_cursor_position();
             }
 
             thread::sleep(Duration::from_millis(16));

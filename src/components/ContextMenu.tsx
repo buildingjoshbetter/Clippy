@@ -120,7 +120,7 @@ export function ContextMenu() {
       <div
         style={{
           position: 'fixed',
-          left: contextMenuX,
+          left: contextMenuX - 200,
           top: contextMenuY,
           background: 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(20px)',
@@ -184,7 +184,7 @@ export function ContextMenu() {
               onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'transparent')}
               onClick={handleAbout}
             >
-              About Desktop Clippy
+              About Clippy
             </div>
           </>
         )}

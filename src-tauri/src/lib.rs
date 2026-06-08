@@ -27,8 +27,8 @@ fn setup_macos_transparency(app: &tauri::App) {
         let app_handle = NSApplication::sharedApplication(nil);
         app_handle.setActivationPolicy_(NSApplicationActivationPolicy::NSApplicationActivationPolicyAccessory);
 
-        // Allow mouse events to pass through transparent areas
-        let _: () = objc::msg_send![ns_window, setIgnoresMouseEvents: cocoa::base::NO];
+        // Start with click-through; hit-test loop will enable events over interactive regions
+        let _: () = objc::msg_send![ns_window, setIgnoresMouseEvents: cocoa::base::YES];
 
         // Set collection behavior to allow the window on all spaces
         let _: () = objc::msg_send![ns_window, setCollectionBehavior: 1u64 << 0]; // NSWindowCollectionBehaviorCanJoinAllSpaces
@@ -99,6 +99,7 @@ pub fn run() {
             commands::get_ai_tool_status,
             commands::load_config,
             commands::save_config,
+            commands::set_force_interactive,
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]

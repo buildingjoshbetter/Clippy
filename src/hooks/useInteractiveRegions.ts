@@ -12,8 +12,20 @@ interface Region {
 export function useInteractiveRegions() {
   const store = useClippyStore();
   const lastJson = useRef('');
+  const lastForce = useRef(false);
+
+  const hasModal = store.settingsOpen || store.stretchActive || store.contextMenuOpen;
 
   useEffect(() => {
+    if (hasModal !== lastForce.current) {
+      lastForce.current = hasModal;
+      invoke('set_force_interactive', { force: hasModal }).catch(() => {});
+    }
+  }, [hasModal]);
+
+  useEffect(() => {
+    if (hasModal) return;
+
     const regions: Region[] = [];
 
     const size = 48 * store.scale;
@@ -24,24 +36,6 @@ export function useInteractiveRegions() {
       w: size,
       h: size,
     });
-
-    if (store.contextMenuOpen) {
-      regions.push({
-        x: store.contextMenuX - 10,
-        y: store.contextMenuY - 10,
-        w: 220,
-        h: 300,
-      });
-    }
-
-    if (store.settingsOpen) {
-      regions.push({
-        x: 0,
-        y: 0,
-        w: window.innerWidth,
-        h: window.innerHeight,
-      });
-    }
 
     if (store.pomodoroPhase !== 'idle') {
       regions.push({
@@ -72,19 +66,10 @@ export function useInteractiveRegions() {
 
     if (store.speechBubble) {
       regions.push({
-        x: store.characterX - 110,
-        y: store.characterY - half - 80,
+        x: store.characterX - half - 230,
+        y: store.characterY - half - 20,
         w: 240,
         h: 60,
-      });
-    }
-
-    if (store.stretchActive) {
-      regions.push({
-        x: 0,
-        y: 0,
-        w: window.innerWidth,
-        h: window.innerHeight,
       });
     }
 
@@ -94,13 +79,11 @@ export function useInteractiveRegions() {
       invoke('update_interactive_regions', { regions }).catch(() => {});
     }
   }, [
+    hasModal,
     store.characterX, store.characterY, store.scale,
-    store.contextMenuOpen, store.contextMenuX, store.contextMenuY,
-    store.settingsOpen,
     store.pomodoroPhase,
     store.activeReminder,
     store.pinnedNote,
     store.speechBubble,
-    store.stretchActive,
   ]);
 }

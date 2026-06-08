@@ -1,9 +1,11 @@
+import { useRef, useState, useEffect } from 'react';
 import { SpeechVariant } from '../store';
 
 interface Props {
   text: string;
-  x: number;
-  y: number;
+  charX: number;
+  charY: number;
+  charSize: number;
   variant: SpeechVariant;
 }
 
@@ -14,16 +16,29 @@ const VARIANT_COLORS: Record<SpeechVariant, { bg: string; border: string; accent
   note: { bg: 'rgba(240, 248, 255, 0.92)', border: 'rgba(80, 80, 180, 0.12)', accent: '#6060b0' },
 };
 
-export function SpeechBubble({ text, x, y, variant }: Props) {
+const GAP = 10;
+
+export function SpeechBubble({ text, charX, charY, charSize, variant }: Props) {
   const colors = VARIANT_COLORS[variant];
-  const bubbleX = x - 230;
-  const bubbleY = y - 20;
+  const ref = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(40);
+
+  useEffect(() => {
+    if (ref.current) {
+      setHeight(ref.current.offsetHeight);
+    }
+  }, [text]);
+
+  const charLeft = charX - charSize / 2;
+  const bubbleX = Math.max(8, charLeft - GAP - 220);
+  const bubbleY = charY - height / 2;
 
   return (
     <div
+      ref={ref}
       style={{
         position: 'fixed',
-        left: Math.max(8, bubbleX),
+        left: bubbleX,
         top: bubbleY,
         background: colors.bg,
         backdropFilter: 'blur(16px)',
@@ -43,7 +58,6 @@ export function SpeechBubble({ text, x, y, variant }: Props) {
       }}
     >
       {text}
-      {/* Tail pointing right toward the character */}
       <div
         style={{
           position: 'absolute',

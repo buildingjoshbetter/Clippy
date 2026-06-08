@@ -100,6 +100,11 @@ pub fn update_interactive_regions(regions: Vec<Region>) {
 }
 
 #[command]
+pub fn set_force_interactive(force: bool) {
+    crate::input::mouse::set_force_interactive(force);
+}
+
+#[command]
 pub fn get_ai_tool_status() -> serde_json::Value {
     if let Some(home) = dirs::home_dir() {
         let status_path = home.join(".desktop-clippy").join("ai-status.json");

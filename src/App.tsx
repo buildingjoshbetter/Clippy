@@ -63,8 +63,9 @@ export default function App() {
       {store.speechBubble && (
         <SpeechBubble
           text={store.speechBubble.text}
-          x={store.characterX - (48 * store.scale) / 2}
-          y={store.characterY}
+          charX={store.characterX}
+          charY={store.characterY}
+          charSize={48 * store.scale}
           variant={store.speechBubble.variant || 'tip'}
         />
       )}
