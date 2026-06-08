@@ -42,10 +42,9 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
 
     let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
     let hide_item = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)?;
-    let settings_item = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
-    let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "Quit Clippy", true, None::<&str>)?;
 
-    let menu = Menu::with_items(app, &[&show_item, &hide_item, &settings_item, &quit_item])?;
+    let menu = Menu::with_items(app, &[&show_item, &hide_item, &quit_item])?;
 
     let tray_icon = Image::new_owned(
         include_bytes!("../icons/tray-icon-44x44.rgba").to_vec(),
@@ -66,12 +65,6 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
             "hide" => {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.hide();
-                }
-            }
-            "settings" => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.emit("open-settings", ());
                 }
             }
             "quit" => {
