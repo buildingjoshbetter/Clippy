@@ -12,6 +12,8 @@ export function useClippy() {
   const lastAnimChange = useRef(0);
   const wobbleVelX = useRef(0);
   const wobbleVelY = useRef(0);
+  const pettingTimer = useRef(0);
+  const firstRun = useRef(true);
 
   // Update character bounds for hit testing
   useEffect(() => {
@@ -184,14 +186,87 @@ export function useClippy() {
     }
   }, []);
 
+  // Right-click for context menu
+  const onContextMenu = useCallback((e: MouseEvent) => {
+    const size = 48 * store.scale;
+    const inBounds = e.clientX >= store.characterX && e.clientX <= store.characterX + size
+                  && e.clientY >= store.characterY && e.clientY <= store.characterY + size;
+    if (inBounds) {
+      e.preventDefault();
+      store.openContextMenu(e.clientX, e.clientY);
+    }
+  }, [store.characterX, store.characterY, store.scale]);
+
   useEffect(() => {
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('contextmenu', onContextMenu);
     return () => {
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('contextmenu', onContextMenu);
     };
-  }, [onMouseDown, onMouseMove, onMouseUp]);
+  }, [onMouseDown, onMouseMove, onMouseUp, onContextMenu]);
+
+  // Petting detection — slow cursor hovering on the top third of character
+  useEffect(() => {
+    if (store.animState === 'dragging' || store.animState === 'wobble') return;
+
+    const size = 48 * store.scale;
+    const headTop = store.characterY;
+    const headBottom = store.characterY + size / 3;
+    const inHead = input.cursorX >= store.characterX && input.cursorX <= store.characterX + size
+                && input.cursorY >= headTop && input.cursorY <= headBottom;
+    const isSlow = input.cursorVelocity < 50;
+
+    if (inHead && isSlow) {
+      pettingTimer.current += 33;
+      if (pettingTimer.current > 1000 && store.animState !== 'petting') {
+        store.setAnimState('petting');
+        store.showSpeech("That's nice!", 'tip', 3000);
+        lastAnimChange.current = Date.now();
+      }
+    } else {
+      pettingTimer.current = 0;
+      if (store.animState === 'petting') {
+        store.setAnimState('idle');
+        lastAnimChange.current = Date.now();
+      }
+    }
+  }, [input.cursorX, input.cursorY, input.cursorVelocity]);
+
+  // First-run greeting
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      setTimeout(() => {
+        store.setAnimState('waving');
+        store.showSpeech("Hi! I'm Clippy. Right-click me for options!", 'tip', 6000);
+        setTimeout(() => {
+          if (store.animState === 'waving') {
+            store.setAnimState('idle');
+          }
+        }, 3000);
+      }, 1500);
+    }
+  }, []);
+
+  // Reminder checker
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const pending = store.reminders.find(r => !r.delivered && r.triggerAt <= now);
+      if (pending) {
+        store.dismissReminder(pending.id);
+        store.setActiveReminder({ id: pending.id, message: pending.message });
+        store.setAnimState('waving');
+        setTimeout(() => {
+          if (store.animState === 'waving') store.setAnimState('idle');
+        }, 2000);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [store.reminders]);
 }
