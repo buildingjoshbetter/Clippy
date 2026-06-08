@@ -77,3 +77,16 @@ pub fn save_config(config: String) -> Result<(), String> {
     let config_path = dir.join("config.json");
     fs::write(config_path, config).map_err(|e| e.to_string())
 }
+
+#[command]
+pub fn get_ai_tool_status() -> serde_json::Value {
+    if let Some(home) = dirs::home_dir() {
+        let status_path = home.join(".desktop-clippy").join("ai-status.json");
+        if let Ok(content) = fs::read_to_string(status_path) {
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&content) {
+                return value;
+            }
+        }
+    }
+    serde_json::json!({ "tool": "none", "status": "idle", "timestamp": 0 })
+}

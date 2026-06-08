@@ -1,5 +1,6 @@
 mod commands;
 mod input;
+mod process;
 
 use tauri::Manager;
 
@@ -82,6 +83,7 @@ pub fn run() {
             commands::set_click_through,
             commands::request_accessibility,
             commands::read_ai_status,
+            commands::get_ai_tool_status,
             commands::load_config,
             commands::save_config,
         ])
@@ -96,6 +98,9 @@ pub fn run() {
 
             // Start cursor position polling + click-through hit testing
             input::mouse::start_hit_test_polling(app.handle().clone());
+
+            // Start AI tool process watcher
+            process::watcher::start_process_watcher();
 
             Ok(())
         })

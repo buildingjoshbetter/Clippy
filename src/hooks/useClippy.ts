@@ -3,6 +3,8 @@ import { useClippyStore } from '../store';
 import { useInput } from './useInput';
 import { invoke } from '@tauri-apps/api/core';
 import { lerp } from '../utils/math';
+import { getIdleAction, resetIdleTier } from '../systems/IdleBehavior';
+import { getRandomLine } from '../config/speechLines';
 
 export function useClippy() {
   const store = useClippyStore();
@@ -58,6 +60,7 @@ export function useClippy() {
     // Overheat: fast typing for 3+ seconds
     if (input.isTypingFast && timeSinceChange > 3000 && store.animState !== 'overheat') {
       store.setAnimState('overheat');
+      store.showSpeech(getRandomLine('overheat', store.userName), 'alert', 3000);
       lastAnimChange.current = now;
       return;
     }
@@ -65,6 +68,9 @@ export function useClippy() {
     // Typing along
     if (input.isTyping && !input.isTypingFast && store.animState !== 'typing_along' && store.animState !== 'overheat') {
       store.setAnimState('typing_along');
+      if (Math.random() < 0.2) { // 20% chance
+        store.showSpeech(getRandomLine('typing', store.userName), 'tip', 2000);
+      }
       lastAnimChange.current = now;
       return;
     }
@@ -269,4 +275,29 @@ export function useClippy() {
     }, 1000);
     return () => clearInterval(interval);
   }, [store.reminders]);
+
+  // Idle behavior system
+  useEffect(() => {
+    if (store.animState !== 'idle' && store.animState !== 'sleeping') {
+      resetIdleTier();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const action = getIdleAction(input.idleDurationMs, store.userName);
+      if (action) {
+        switch (action.type) {
+          case 'speech':
+            if (action.speech) store.showSpeech(action.speech, 'tip', 4000);
+            break;
+          case 'sleep':
+            store.setAnimState('sleeping');
+            break;
+          // look and tap are handled by the renderer based on animState
+        }
+      }
+    }, 5000); // check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [store.animState, input.idleDurationMs]);
 }

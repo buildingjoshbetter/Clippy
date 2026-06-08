@@ -9,6 +9,7 @@ import { ContextMenu } from './components/ContextMenu';
 import { useClippyStore } from './store';
 import { useClippy } from './hooks/useClippy';
 import { useAIStatus } from './hooks/useAIStatus';
+import { useConfig } from './hooks/useConfig';
 
 export default function App() {
   const store = useClippyStore();
@@ -16,6 +17,7 @@ export default function App() {
   // Initialize behavior systems
   useClippy();
   useAIStatus();
+  useConfig();
 
   return (
     <>

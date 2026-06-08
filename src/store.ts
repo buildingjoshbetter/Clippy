@@ -50,8 +50,11 @@ interface ClippyStore {
 
   // Config
   userName: string;
+  setUserName: (name: string) => void;
   characterVariant: string;
+  setCharacterVariant: (variant: string) => void;
   scale: number;
+  setScale: (scale: number) => void;
 
   // Settings panel
   settingsOpen: boolean;
@@ -118,8 +121,11 @@ export const useClippyStore = create<ClippyStore>((set, get) => ({
   hideSpeech: () => set({ speechBubble: null }),
 
   userName: '',
+  setUserName: (name) => set({ userName: name }),
   characterVariant: 'classic',
+  setCharacterVariant: (variant) => set({ characterVariant: variant }),
   scale: 3,
+  setScale: (scale) => set({ scale }),
 
   // Settings panel
   settingsOpen: false,
