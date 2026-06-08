@@ -8,9 +8,18 @@ export type AnimState =
 
 export type SpeechVariant = 'tip' | 'reminder' | 'alert' | 'note';
 
+export type PomodoroPhase = 'idle' | 'focus' | 'break' | 'longBreak';
+
 interface SpeechBubbleState {
   text: string;
   variant: SpeechVariant;
+}
+
+interface Reminder {
+  id: string;
+  message: string;
+  triggerAt: number;
+  delivered: boolean;
 }
 
 interface ClippyStore {
@@ -43,6 +52,39 @@ interface ClippyStore {
   userName: string;
   characterVariant: string;
   scale: number;
+
+  // Settings panel
+  settingsOpen: boolean;
+  setSettingsOpen: (open: boolean) => void;
+
+  // Context menu
+  contextMenuOpen: boolean;
+  contextMenuX: number;
+  contextMenuY: number;
+  openContextMenu: (x: number, y: number) => void;
+  closeContextMenu: () => void;
+
+  // Pomodoro state
+  pomodoroPhase: PomodoroPhase;
+  pomodoroRemainingMs: number;
+  setPomodoroState: (phase: PomodoroPhase, remainingMs: number) => void;
+
+  // Reminders
+  reminders: Reminder[];
+  addReminder: (message: string, triggerAt: number) => void;
+  dismissReminder: (id: string) => void;
+
+  // Active reminder (currently showing)
+  activeReminder: { id: string; message: string } | null;
+  setActiveReminder: (reminder: { id: string; message: string } | null) => void;
+
+  // Pinned note
+  pinnedNote: string;
+  setPinnedNote: (note: string) => void;
+
+  // Stretch overlay
+  stretchActive: boolean;
+  setStretchActive: (active: boolean) => void;
 }
 
 export const useClippyStore = create<ClippyStore>((set, get) => ({
@@ -78,4 +120,49 @@ export const useClippyStore = create<ClippyStore>((set, get) => ({
   userName: '',
   characterVariant: 'classic',
   scale: 3,
+
+  // Settings panel
+  settingsOpen: false,
+  setSettingsOpen: (open) => set({ settingsOpen: open }),
+
+  // Context menu
+  contextMenuOpen: false,
+  contextMenuX: 0,
+  contextMenuY: 0,
+  openContextMenu: (x, y) => set({ contextMenuOpen: true, contextMenuX: x, contextMenuY: y }),
+  closeContextMenu: () => set({ contextMenuOpen: false }),
+
+  // Pomodoro state
+  pomodoroPhase: 'idle',
+  pomodoroRemainingMs: 0,
+  setPomodoroState: (phase, remainingMs) => set({ pomodoroPhase: phase, pomodoroRemainingMs: remainingMs }),
+
+  // Reminders
+  reminders: [],
+  addReminder: (message, triggerAt) => {
+    const id = `reminder_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    set((state) => ({
+      reminders: [...state.reminders, { id, message, triggerAt, delivered: false }],
+    }));
+  },
+  dismissReminder: (id) => {
+    set((state) => ({
+      reminders: state.reminders.map((r) =>
+        r.id === id ? { ...r, delivered: true } : r
+      ),
+      activeReminder: state.activeReminder?.id === id ? null : state.activeReminder,
+    }));
+  },
+
+  // Active reminder
+  activeReminder: null,
+  setActiveReminder: (reminder) => set({ activeReminder: reminder }),
+
+  // Pinned note
+  pinnedNote: '',
+  setPinnedNote: (note) => set({ pinnedNote: note }),
+
+  // Stretch overlay
+  stretchActive: false,
+  setStretchActive: (active) => set({ stretchActive: active }),
 }));
