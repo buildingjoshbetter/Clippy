@@ -46,12 +46,13 @@ export function ClippyCanvas() {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Create offscreen canvas for pixel art character
-      const offscreen = new OffscreenCanvas(NATIVE_SIZE, NATIVE_SIZE);
-      const offCtx = offscreen.getContext('2d')!;
-      offCtx.clearRect(0, 0, NATIVE_SIZE, NATIVE_SIZE);
-
-      drawClippy(offCtx, {
+      // Draw character directly at full resolution for smooth vector look
+      ctx.imageSmoothingEnabled = true;
+      const drawSize = NATIVE_SIZE * scale;
+      ctx.save();
+      ctx.translate(characterX, characterY);
+      ctx.scale(scale, scale);
+      drawClippy(ctx, {
         eyeOffsetX,
         eyeOffsetY,
         bodyTilt,
@@ -60,17 +61,7 @@ export function ClippyCanvas() {
         animState,
         time,
       }, characterVariant);
-
-      // Scale up with nearest-neighbor for crisp pixel art
-      ctx.imageSmoothingEnabled = false;
-      const drawSize = NATIVE_SIZE * scale;
-      ctx.drawImage(
-        offscreen,
-        characterX,
-        characterY,
-        drawSize,
-        drawSize
-      );
+      ctx.restore();
 
       // Particle system — emit, update, draw in world space
       const centerX = characterX + drawSize / 2;
