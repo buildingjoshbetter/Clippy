@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/clippy-demo.svg" alt="Clippy demo — parrot bobbing, blinking, and chatting" width="500">
+  <img src="assets/clippy-demo.svg?v=2" alt="Clippy demo — parrot bobbing, blinking, and chatting" width="500">
 </p>
 
 ---
