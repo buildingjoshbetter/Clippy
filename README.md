@@ -5,239 +5,111 @@
 <h1 align="center">Clippy</h1>
 
 <p align="center">
-  <strong>A desktop pet companion for macOS that watches you code.</strong>
+  <strong>Your little coding buddy that lives on your screen.</strong>
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/macOS-000?style=flat&logo=apple&logoColor=white" alt="macOS">
   <img src="https://img.shields.io/badge/Tauri_2-000?style=flat&logo=tauri&logoColor=ffc131" alt="Tauri 2">
   <img src="https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=000" alt="React 19">
   <img src="https://img.shields.io/badge/Rust-000?style=flat&logo=rust&logoColor=white" alt="Rust">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/macOS-000?style=flat&logo=apple&logoColor=white" alt="macOS">
 </p>
 
 ---
 
-Clippy is a fully interactive desktop pet that lives on top of your screen. It tracks your mouse, reacts to your typing and scrolling, celebrates when your AI tools finish working, reminds you to stretch, and runs a Pomodoro timer. Built with Tauri 2, React 19, and native macOS APIs.
+Clippy is a desktop pet that sits on top of your screen while you work. It watches your cursor, reacts to your typing, gets excited when you scroll, and falls asleep if you walk away. It's basically a tiny friend that hangs out with you while you code.
 
-20 hand-drawn characters. 15 animation states. 54,000 lines of code across 55 source files. Zero web dependencies at runtime.
+Pick from 20 hand-drawn characters — each with their own personality and things to say. Right-click for a Pomodoro timer, stretch reminders, or to pin a note. If you use AI coding tools, Clippy notices when they're thinking and does a little celebration dance when they finish.
 
----
-
-## Features
-
-**Reactive Behavior** -- Clippy watches what you do and responds in real time. Type fast enough and it overheats with steam particles. Scroll through code and it unrolls. Move your cursor quickly and it chases you. Leave it alone for five minutes and it falls asleep.
-
-**Eye Tracking** -- The character's eyes follow your cursor everywhere on screen, using macOS CGEvent APIs to poll the global cursor position at 30fps. The pupil offset is lerped at 25% per frame for smooth, natural-feeling movement.
-
-**20 Characters** -- Classic Clippy (silver, gold, dark, neon), Parrot, Robot, Fox, Rubber Duck, Dog, Owl, Cat, UFO, Octopus, Cactus, Coffee Cup, Dice, Penguin, Mushroom, Lightbulb, and Ghost. Each character has its own personality, speech lines, color scheme, and custom Canvas rendering code.
-
-**AI Tool Integration** -- Detects when Claude Code, Cursor, Codex, or Kiro are running via process watching. Enters a "thinking" animation while the tool works, then celebrates with a victory dance and particle burst when the task completes.
-
-**Coin Sound Hook** -- A Claude Code Stop hook plays a Mario coin sound every time Claude finishes a response in your terminal. Filters by `CLAUDE_CODE_ENTRYPOINT=cli` so background SDK sessions don't trigger it. Configurable volume and 5-second cooldown.
-
-**Productivity Tools** -- Right-click the character for a Pomodoro timer, stretch reminders, pinned notes, and scheduled reminders. The stretch overlay goes full-screen to make sure you actually stand up.
-
-**Click-Through Overlay** -- The window is transparent and always on top. A Rust hit-test loop polls every 16ms and toggles `setIgnoresCursorEvents` based on whether the cursor is over any interactive region. You can click through the empty space to your IDE underneath.
-
-**Drag and Drop** -- Click and drag the character anywhere on screen. On release, it bounces with spring physics (damping 0.85, sine-based squash and stretch).
-
-**Petting** -- Hover slowly over the character's head for 1 second and it triggers a petting animation with floating heart particles.
-
-**Speech Bubbles** -- Contextual dialogue tied to each animation state. Character-specific overrides give each pet its own voice and personality.
+It's the kind of thing that makes you smile at 2am when you're deep in a debugging session.
 
 ---
 
-## Architecture
+## What It Does
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    macOS Screen                      │
-│                                                      │
-│   ┌──────────────────────────────────────────────┐  │
-│   │          Transparent Tauri Window             │  │
-│   │          (always on top, 1920x1080)           │  │
-│   │                                               │  │
-│   │   ┌─────────┐  ┌──────────┐  ┌───────────┐  │  │
-│   │   │ Character│  │  Speech  │  │  Context  │  │  │
-│   │   │ Canvas   │  │  Bubble  │  │   Menu    │  │  │
-│   │   └────┬─────┘  └──────────┘  └───────────┘  │  │
-│   │        │                                      │  │
-│   └────────┼──────────────────────────────────────┘  │
-│            │                                         │
-│   ┌────────┴──────────────────────────────────────┐  │
-│   │              Rust Backend (Tauri)              │  │
-│   │                                               │  │
-│   │  ┌──────────┐  ┌──────────┐  ┌────────────┐ │  │
-│   │  │ Hit-Test  │  │ Keyboard │  │  Process   │ │  │
-│   │  │ Polling   │  │ EventTap │  │  Watcher   │ │  │
-│   │  │ (16ms)    │  │ (CGEvent)│  │ (ps aux)   │ │  │
-│   │  └──────────┘  └──────────┘  └────────────┘ │  │
-│   └───────────────────────────────────────────────┘  │
-│                                                      │
-│   ┌───────────────────────────────────────────────┐  │
-│   │  ~/.desktop-clippy/                           │  │
-│   │  ├── config.json      (persisted settings)    │  │
-│   │  ├── ai-status.json   (AI tool state)         │  │
-│   │  ├── coin.wav         (sound effect)          │  │
-│   │  ├── play-coin.sh     (Claude Code hook)      │  │
-│   │  └── coin.log         (hook audit log)        │  │
-│   └───────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────┘
-```
+**It follows your cursor.** Clippy's eyes track your mouse everywhere on screen. Move slowly and it watches curiously. Move fast and it chases you across the desktop.
 
-### How the Click-Through Works
+**It reacts to your typing.** Type normally and it bobs along. Type fast for a while and it overheats — turns red, starts shaking, little steam particles float up. It's dramatic.
 
-The hardest problem in a desktop pet is making it clickable without blocking your IDE underneath. Here's how Clippy solves it:
+**It gets bored.** Leave your computer for a couple minutes and it starts looking around. A little longer and it yawns. Five minutes and it's asleep with little Z's floating up.
 
-1. The Tauri window covers the entire screen, transparent, always on top, decorations off.
-2. On startup, the window calls `setIgnoresMouseEvents(YES)` — everything passes through.
-3. The React frontend sends a list of interactive region rectangles to Rust via IPC: the character bounds, any open context menu, settings panel, Pomodoro widget, etc.
-4. A Rust thread polls the global cursor position every 16ms using `CGEvent`.
-5. If the cursor is inside any registered region, it calls `setIgnoresMouseEvents(NO)` so clicks hit the React UI. If outside, clicks pass through to whatever's underneath.
-6. When a modal (settings, stretch overlay, context menu) opens, a `FORCE_INTERACTIVE` atomic flag bypasses region checking entirely — the whole window becomes clickable until the modal closes.
+**It likes being pet.** Hover your cursor slowly over its head and after a second it lights up with a happy face and floating hearts.
 
-### How Input Monitoring Works
+**It bounces.** Drag it anywhere on screen and drop it — it bounces with a satisfying spring physics wobble.
 
-Clippy uses macOS `CGEventTap` to globally monitor keyboard and scroll events without requiring focus. This needs Accessibility permissions, which the app requests on first launch.
+**It talks to you.** Speech bubbles pop up with context-aware messages. Each character has its own voice — the Rubber Duck asks Socratic questions, the Cat is aloof, the Coffee Cup is way too caffeinated.
 
-The event tap runs on a background thread with its own `CFRunLoop`. It counts keystrokes (with timestamps for WPM calculation) and scroll deltas, which the frontend polls every 33ms via Tauri IPC. The frontend derives behavioral triggers:
+**It knows when your AI is working.** If you're using Claude Code, Cursor, Codex, or Kiro, Clippy enters a "thinking" animation while it runs. When the AI finishes, Clippy celebrates with sparkles and a victory dance. There's even an optional Mario coin sound.
 
-| Signal | Threshold | Triggers |
+**It helps you stay healthy.** Built-in Pomodoro timer. Stretch reminders every 45 minutes that go full-screen so you actually stand up. Pinned notes. Scheduled reminders.
+
+**It stays out of your way.** The window is transparent and click-through — you can click right through it to your IDE. It only becomes interactive when your cursor is directly over the character or an open menu.
+
+---
+
+## Meet the Characters
+
+20 characters, each fully hand-drawn with procedural Canvas rendering. Every one has unique animations, colors, and a personality that comes through in what they say.
+
+| | Character | Vibe |
 |---|---|---|
-| Typing | KPS > 1.5 | `typing_along` animation |
-| Fast typing | KPS > 8 for 5s+ | `overheat` with steam particles |
-| Scrolling | Event in last 500ms | `paper_unroll` animation |
-| Fast cursor | Velocity > 1200 px/s | `chasing` behavior |
-| Idle | No input for 5 min | `sleeping` with Z particles |
-
-### How the AI Hook Works
-
-The coin sound is triggered by a Claude Code **Stop hook** — a shell script that runs every time Claude finishes a response.
-
-```bash
-# ~/.desktop-clippy/play-coin.sh
-ENTRY="${CLAUDE_CODE_ENTRYPOINT:-unknown}"
-
-# Only play for interactive terminal sessions
-if [ "$ENTRY" != "cli" ]; then
-  exit 0
-fi
-
-# 5-second cooldown
-if [ -f "$LOCK" ]; then
-  LAST=$(cat "$LOCK")
-  if [ $((NOW - LAST)) -lt 5 ]; then exit 0; fi
-fi
-
-afplay -v "$VOL" ~/.desktop-clippy/coin.wav &
-```
-
-The key insight: `CLAUDE_CODE_ENTRYPOINT` distinguishes interactive CLI sessions (`cli`) from background SDK sessions (`sdk-cli`). Without this filter, TrueMemory's background extraction hooks would trigger the coin sound randomly.
+| | **Clippy** | The original. Helpful, a little sarcastic, always has a tip. |
+| | **Clippy Gold** | The fancy one. Encouraging and refined. |
+| | **Clippy Dark** | Carbon fiber. Mysterious. Speaks in short sentences. |
+| | **Clippy Neon** | Glowing cyan and magenta. Can't sit still. |
+| | **Parrot** | Chatty, colorful, repeats things back at you (in a good way). |
+| | **Robot** | Chrome and LEDs. Efficient. Slightly confused by emotions. |
+| | **Fox** | Clever and warm. Gives the best advice. |
+| | **Rubber Duck** | The debugger's best friend. Asks you questions until you figure it out. |
+| | **Dog** | Golden retriever energy. Thinks everything you do is amazing. |
+| | **Owl** | Wise. Contemplative. Quotes things. |
+| | **Cat** | Could not care less about your code. Might help. Might not. |
+| | **UFO** | Visiting from somewhere else. Fascinated by human coding rituals. |
+| | **Octopus** | Eight arms, multitasking jokes, surprisingly good at pair programming. |
+| | **Cactus** | Dry humor. Low maintenance. Thrives on neglect. |
+| | **Coffee Cup** | VERY awake. Types in ALL CAPS sometimes. Vibrating slightly. |
+| | **Dice** | Random. Unpredictable. Rolls with it. |
+| | **Penguin** | Formal. Tuxedo. Surprisingly chill about deadlines. |
+| | **Mushroom** | Whimsical. Nature-oriented. Probably knows something you don't. |
+| | **Lightbulb** | Always having ideas. Literally glows when you type something good. |
+| | **Ghost** | Spooky but friendly. Haunts your codebase with gentle suggestions. |
 
 ---
 
-## Tech Stack
+## Behaviors
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Framework | Tauri 2.11 | Desktop app shell, IPC, window management |
-| Frontend | React 19 + Zustand 5 | UI rendering, state management |
-| Rendering | HTML5 Canvas API | Procedural character drawing at 30fps |
-| Language | TypeScript 6 + Rust | Frontend logic + native backend |
-| Input | CGEventTap (Core Graphics) | Global keyboard and scroll monitoring |
-| Window | Cocoa (AppKit) | Transparency, click-through, activation policy |
-| Sound | Web Audio API + afplay | In-app blips + system coin sound |
-| Build | Vite 8 + Cargo | Frontend bundling + Rust compilation |
-| Icons | @napi-rs/canvas | Server-side Canvas rendering for app icons |
+Clippy has 14 distinct animation states, each triggered by what you're doing:
 
----
-
-## Project Structure
-
-```
-desktop-clippy/
-├── src/
-│   ├── App.tsx                          # Root component
-│   ├── store.ts                         # Zustand state (position, animation, config)
-│   ├── main.tsx                         # React entry point
-│   │
-│   ├── components/
-│   │   ├── ClippyCanvas.tsx             # 30fps canvas render loop
-│   │   ├── SpeechBubble.tsx             # Floating dialogue (left of character)
-│   │   ├── ContextMenu.tsx              # Right-click menu
-│   │   ├── SettingsPanel.tsx            # Character picker, scale, config
-│   │   ├── PomodoroWidget.tsx           # Focus/break timer
-│   │   ├── ReminderToast.tsx            # Scheduled notifications
-│   │   ├── FixedNote.tsx                # Pinned note above character
-│   │   └── StretchOverlay.tsx           # Full-screen stretch reminder
-│   │
-│   ├── hooks/
-│   │   ├── useClippy.ts                 # Animation state machine + behaviors
-│   │   ├── useInput.ts                  # Polls Rust for cursor/keys/scroll
-│   │   ├── useInteractiveRegions.ts     # Manages click-through hitboxes
-│   │   ├── useAIStatus.ts               # AI tool detection + victory trigger
-│   │   ├── useConfig.ts                 # Persistence to ~/.desktop-clippy/
-│   │   └── useTimers.ts                 # Pomodoro + stretch countdown
-│   │
-│   ├── engine/
-│   │   ├── ClippyRenderer.ts            # Legacy paperclip renderer (833 lines)
-│   │   ├── ParticleSystem.ts            # Hearts, steam, sparkles, Z's
-│   │   └── characters/
-│   │       ├── index.ts                 # Character registry
-│   │       ├── utils.ts                 # Shared eye/expression drawing
-│   │       ├── clippy.ts               # Classic silver paperclip
-│   │       ├── parrot.ts               # Green parrot (752 lines)
-│   │       ├── robot.ts                # Chrome robot
-│   │       ├── fox.ts                  # Orange fox
-│   │       ├── ... (16 more)
-│   │       └── ghost.ts                # Translucent ghost
-│   │
-│   ├── systems/
-│   │   ├── SoundSystem.ts              # Web Audio synthesis
-│   │   ├── IdleBehavior.ts             # Progressive idle escalation
-│   │   └── AIStatusSystem.ts           # Status file polling
-│   │
-│   ├── config/
-│   │   ├── defaults.ts                 # AppConfig type + defaults
-│   │   └── speechLines.ts              # 230 lines of dialogue
-│   │
-│   └── utils/
-│       └── math.ts                     # lerp, clamp, distance, springDamp
-│
-├── src-tauri/
-│   ├── src/
-│   │   ├── lib.rs                      # App setup, tray, transparency
-│   │   ├── commands.rs                 # 11 Tauri IPC commands
-│   │   ├── input/
-│   │   │   ├── keyboard.rs             # CGEventTap (keys + scroll)
-│   │   │   └── mouse.rs                # Cursor polling + hit-test loop
-│   │   └── process/
-│   │       └── watcher.rs              # AI tool process detection
-│   ├── icons/
-│   │   ├── icon.icns                   # App icon (Canvas-rendered parrot)
-│   │   └── tray-icon-44x44.rgba        # Menu bar icon (gray silhouette)
-│   ├── Cargo.toml
-│   └── tauri.conf.json
-│
-├── generate-icons-canvas.mjs           # Icon generator (@napi-rs/canvas)
-├── package.json
-├── vite.config.ts
-└── tsconfig.json
-```
+| What's happening | What Clippy does |
+|---|---|
+| You're just sitting there | Breathes softly, looks around occasionally |
+| You move your cursor | Eyes follow it everywhere |
+| You're typing | Bobs along with your keystrokes |
+| You're typing *really* fast | Overheats — turns red, shakes, steam particles |
+| You're scrolling | Does an unrolling animation |
+| You fling your cursor fast | Chases it across the screen |
+| You drag it somewhere | Follows your cursor, wobbles on release |
+| You hover on its head slowly | Gets happy, floating hearts |
+| Your AI tool is running | Thinking animation with thought bubbles |
+| Your AI tool finishes | Victory dance with sparkles |
+| 45 minutes of work | Reminds you to stretch (full-screen overlay) |
+| You get a reminder | Waves to get your attention |
+| You say hi | Waves back |
+| You leave for 5 minutes | Falls asleep with little Z's |
 
 ---
 
 ## Getting Started
 
-### Prerequisites
+### What You Need
 
-- macOS 11.0 or later
+- macOS 11.0+
 - Node.js 18+
-- Rust (via [rustup](https://rustup.rs))
+- Rust ([rustup.rs](https://rustup.rs))
 - Xcode Command Line Tools (`xcode-select --install`)
 
-### Development
+### Run It
 
 ```bash
 git clone https://github.com/buildingjoshbetter/Clippy.git
@@ -246,24 +118,24 @@ npm install
 npm run tauri dev
 ```
 
-On first launch, macOS will ask for **Accessibility permissions** (System Settings > Privacy & Security > Accessibility). This is required for keyboard and scroll monitoring via CGEventTap. The app will prompt you to enable it.
+macOS will ask for Accessibility permissions on first launch — Clippy needs this to see your keyboard and cursor activity. Grant it in System Settings > Privacy & Security > Accessibility.
 
-### Build
+### Build the App
 
 ```bash
 npm run tauri build
 ```
 
-Outputs:
-- `src-tauri/target/release/bundle/macos/Clippy.app`
-- `src-tauri/target/release/bundle/dmg/Clippy_0.1.0_aarch64.dmg`
+This gives you `Clippy.app` and a `.dmg` installer.
 
-### Coin Sound Hook (optional)
+---
 
-To play a Mario coin sound every time Claude Code finishes a response:
+## Optional: Coin Sound for Claude Code
+
+If you use Claude Code, you can set up a Mario coin sound that plays every time Claude finishes a response.
 
 1. Copy `coin.wav` to `~/.desktop-clippy/coin.wav`
-2. Add a Stop hook to your Claude Code settings (`~/.claude/settings.json`):
+2. Add a Stop hook to `~/.claude/settings.json`:
 
 ```json
 {
@@ -278,73 +150,105 @@ To play a Mario coin sound every time Claude Code finishes a response:
 }
 ```
 
----
-
-## Animation States
-
-| State | Trigger | Visual | Particles |
-|---|---|---|---|
-| `idle` | Default | Subtle breathing, random look-around | -- |
-| `eye_follow` | Cursor nearby | Eyes track cursor position | -- |
-| `typing_along` | KPS > 1.5 | Nods along with keystrokes | -- |
-| `overheat` | KPS > 8 for 5s | Red tint, shaking | Steam |
-| `paper_unroll` | Scrolling | Unrolling animation | -- |
-| `chasing` | Cursor > 1200 px/s | Moves 3px/frame toward cursor | -- |
-| `dragging` | Left-click + drag | Follows cursor with wobble | -- |
-| `wobble` | After drag release | Spring physics bounce | -- |
-| `petting` | Slow hover on head | Happy expression | Hearts |
-| `thinking` | AI tool active | Thought bubble animation | Dots |
-| `victory` | AI tool finished | Celebration dance | Sparkles |
-| `stretching` | 45 min of work | Stretch reminder | -- |
-| `waving` | Greeting / reminder | Arm wave | -- |
-| `sleeping` | 5 min idle | Eyes closed, slow breathing | Z's |
+It only plays for interactive terminal sessions — background processes won't trigger it.
 
 ---
 
-## Characters
+## How It's Built
 
-| Character | Style | Personality |
-|---|---|---|
-| Clippy (Classic) | Silver metallic paperclip | Helpful, slightly sarcastic |
-| Clippy Gold | Gold premium variant | Refined, encouraging |
-| Clippy Dark | Carbon fiber black | Mysterious, concise |
-| Clippy Neon | Glowing cyan/magenta | Energetic, excitable |
-| Parrot | Green with orange crest | Chatty, enthusiastic |
-| Robot | Chrome with LED eyes | Logical, efficient |
-| Fox | Orange with bushy tail | Clever, warm |
-| Rubber Duck | Yellow classic duck | Patient, Socratic |
-| Dog | Golden retriever | Loyal, encouraging |
-| Owl | Brown with large eyes | Wise, contemplative |
-| Cat | Gray with green eyes | Aloof, witty |
-| UFO | Metallic saucer | Curious, alien perspective |
-| Octopus | Purple with tentacles | Multitasking jokes |
-| Cactus | Green with flower | Dry humor, resilient |
-| Coffee Cup | Steaming mug | Caffeinated, energetic |
-| Dice | White with dots | Random, playful |
-| Penguin | Tuxedo black and white | Formal, chill |
-| Mushroom | Red cap with spots | Whimsical, nature-oriented |
-| Lightbulb | Glowing filament | Ideas-focused, bright |
-| Ghost | Translucent white | Spooky humor, ethereal |
+Under the hood, Clippy is a Tauri 2 app with a React frontend and a Rust backend. The character lives in a transparent, always-on-top window that covers your entire screen but lets clicks pass through to your IDE.
+
+The tricky part was making it clickable without blocking everything underneath. A Rust thread polls the cursor position every 16ms and checks if it's over the character or any open menu. If yes, clicks work. If no, they pass right through. When a modal opens (settings, stretch overlay), the whole window becomes interactive until it closes.
+
+Input monitoring uses macOS CGEventTap for global keyboard and scroll events on a background thread. The frontend polls this at 30fps and derives behavioral triggers — typing speed, cursor velocity, scroll activity, idle duration.
+
+Each character is 400-750 lines of procedural Canvas drawing code — bezier curves, gradients, and custom animations. No sprites or images. Particles (hearts, steam, sparkles, Z's) are handled by a lightweight particle system.
+
+| | |
+|---|---|
+| **Framework** | Tauri 2 + React 19 + Zustand 5 |
+| **Rendering** | HTML5 Canvas at 30fps |
+| **Languages** | TypeScript + Rust |
+| **Input** | CGEventTap (Core Graphics) |
+| **Window** | Cocoa AppKit (transparency + click-through) |
+| **Sound** | Web Audio API + afplay |
+| **Build** | Vite 8 + Cargo |
+
+---
+
+## Project Structure
+
+<details>
+<summary>Full file tree</summary>
+
+```
+src/
+├── App.tsx                          Main app component
+├── store.ts                         Zustand state management
+├── main.tsx                         Entry point
+│
+├── components/
+│   ├── ClippyCanvas.tsx             Canvas render loop (30fps)
+│   ├── SpeechBubble.tsx             Floating dialogue bubbles
+│   ├── ContextMenu.tsx              Right-click menu
+│   ├── SettingsPanel.tsx            Character picker + settings
+│   ├── PomodoroWidget.tsx           Focus/break timer
+│   ├── ReminderToast.tsx            Notification popups
+│   ├── FixedNote.tsx                Pinned note display
+│   └── StretchOverlay.tsx           Full-screen stretch reminder
+│
+├── hooks/
+│   ├── useClippy.ts                 Animation state machine
+│   ├── useInput.ts                  Cursor/keyboard/scroll polling
+│   ├── useInteractiveRegions.ts     Click-through region management
+│   ├── useAIStatus.ts               AI tool detection
+│   ├── useConfig.ts                 Settings persistence
+│   └── useTimers.ts                 Pomodoro + stretch timers
+│
+├── engine/
+│   ├── ClippyRenderer.ts            Legacy paperclip renderer
+│   ├── ParticleSystem.ts            Hearts, steam, sparkles, Z's
+│   └── characters/                  20 character renderers
+│       ├── clippy.ts                Classic silver paperclip
+│       ├── parrot.ts                Green parrot
+│       ├── robot.ts, fox.ts, ...    16 more characters
+│       └── ghost.ts                 Translucent ghost
+│
+├── systems/
+│   ├── SoundSystem.ts               Web Audio synthesis
+│   ├── IdleBehavior.ts              Progressive idle states
+│   └── AIStatusSystem.ts            AI status polling
+│
+└── config/
+    ├── defaults.ts                  Default configuration
+    └── speechLines.ts               230 lines of dialogue
+
+src-tauri/src/
+├── lib.rs                           App setup + system tray
+├── commands.rs                      Tauri IPC commands
+├── input/
+│   ├── keyboard.rs                  CGEventTap (keys + scroll)
+│   └── mouse.rs                     Cursor polling + hit-test
+└── process/
+    └── watcher.rs                   AI tool detection
+```
+
+</details>
 
 ---
 
 ## Configuration
 
-Settings are persisted to `~/.desktop-clippy/config.json`:
+Right-click the character to open Settings, or edit `~/.desktop-clippy/config.json` directly:
 
 ```json
 {
   "characterVariant": "parrot",
   "characterScale": 3,
-  "lastX": 800,
-  "lastY": 600,
-  "userName": "",
   "coinVolume": 10,
   "stretchInterval": 45,
   "pomodoroFocus": 25,
-  "pomodoroBreak": 5,
-  "pinnedNote": "",
-  "reminders": []
+  "pomodoroBreak": 5
 }
 ```
 
