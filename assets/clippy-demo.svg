@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <style>
+      @keyframes bodyBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+      @keyframes eyeFollow { 0% { transform: translate(-3px, 0); } 25% { transform: translate(3px, -1px); } 50% { transform: translate(2px, 1px); } 75% { transform: translate(-2px, -1px); } 100% { transform: translate(-3px, 0); } }
+      @keyframes blink { 0%,42%,46%,100% { transform: scaleY(1); } 44% { transform: scaleY(0.05); } }
+      @keyframes tailWag { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+      @keyframes crestBounce { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(3deg); } }
+      @keyframes heartFloat { 0% { opacity: 0; transform: translate(0, 0) scale(0.5); } 20% { opacity: 1; transform: translate(-5px, -10px) scale(1); } 100% { opacity: 0; transform: translate(-10px, -40px) scale(0.3); } }
+      @keyframes sparkle { 0% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0); } }
+      @keyframes bubbleFade { 0%,10% { opacity: 0; transform: translateY(5px); } 15%,85% { opacity: 1; transform: translateY(0); } 90%,100% { opacity: 0; transform: translateY(-5px); } }
+      @keyframes cursor { 0% { transform: translate(180px, 100px); } 15% { transform: translate(120px, 60px); } 30% { transform: translate(160px, 80px); } 45% { transform: translate(100px, 90px); } 55% { transform: translate(80px, 40px); } 70% { transform: translate(150px, 70px); } 85% { transform: translate(200px, 50px); } 100% { transform: translate(180px, 100px); } }
+      @keyframes zzz1 { 0% { opacity: 0; transform: translate(0,0) scale(0.5); } 50% { opacity: 0.6; transform: translate(-8px,-15px) scale(1); } 100% { opacity: 0; transform: translate(-16px,-30px) scale(0.7); } }
+      @keyframes zzz2 { 0% { opacity: 0; transform: translate(0,0) scale(0.5); } 50% { opacity: 0.5; transform: translate(-12px,-18px) scale(0.9); } 100% { opacity: 0; transform: translate(-20px,-35px) scale(0.6); } }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="200" rx="12" fill="#1a1a2e" />
+  <rect x="1" y="1" width="398" height="198" rx="11" fill="none" stroke="#2a2a4e" stroke-width="1" />
+
+  <!-- Animated cursor -->
+  <g style="animation: cursor 12s ease-in-out infinite;">
+    <path d="M0,0 L0,14 L4,10 L8,16 L10,15 L7,9 L12,9 Z" fill="white" stroke="#333" stroke-width="0.8" />
+  </g>
+
+  <!-- Parrot group with bob -->
+  <g transform="translate(160, 68)">
+    <g style="animation: bodyBob 2s ease-in-out infinite;">
+
+      <!-- Shadow -->
+      <ellipse cx="0" cy="62" rx="22" ry="5" fill="rgba(0,0,0,0.15)" />
+
+      <!-- Tail -->
+      <g transform="translate(-12, 30)" style="animation: tailWag 3s ease-in-out infinite; transform-origin: 12px 0;">
+        <path d="M0,20 Q-15,10 -8,0 Q-2,8 5,15 Z" fill="#2e7d32" />
+        <path d="M-2,18 Q-18,6 -12,-2 Q-6,6 3,13 Z" fill="#1b5e20" opacity="0.7" />
+      </g>
+
+      <!-- Body -->
+      <ellipse cx="0" cy="22" rx="16" ry="22" fill="#4caf50" />
+      <ellipse cx="0" cy="28" rx="10" ry="15" fill="#81c784" />
+
+      <!-- Wing -->
+      <ellipse cx="-10" cy="20" rx="10" ry="16" fill="#388e3c" transform="rotate(8)" />
+
+      <!-- Branch -->
+      <path d="M-25,52 Q0,48 25,52 L25,55 Q0,51 -25,55 Z" fill="#8B5E3C" />
+      <path d="M-25,54 Q0,52 25,54 L25,55 Q0,53 -25,55 Z" fill="#6d4830" />
+
+      <!-- Feet -->
+      <rect x="-8" y="46" width="5" height="6" rx="1" fill="#e8870e" />
+      <rect x="3" y="46" width="5" height="6" rx="1" fill="#e8870e" />
+      <line x1="-10" y1="52" x2="0" y2="52" stroke="#e8870e" stroke-width="2" stroke-linecap="round" />
+      <line x1="1" y1="52" x2="11" y2="52" stroke="#e8870e" stroke-width="2" stroke-linecap="round" />
+
+      <!-- Head -->
+      <circle cx="0" cy="-8" r="15" fill="#4caf50" />
+      <ellipse cx="-4" cy="-13" rx="8" ry="6" fill="rgba(255,255,255,0.08)" />
+
+      <!-- Crest -->
+      <g transform="translate(-5, -23)" style="animation: crestBounce 2s ease-in-out infinite; transform-origin: 5px 10px;">
+        <path d="M0,2 Q-2,-6 2,-2 Q3,1 4,3 Z" fill="#ff6b35" />
+        <path d="M3,1 Q2,-7 5,-3 Q6,0 5,2 Z" fill="#ff7043" />
+        <path d="M5,1.5 Q6,-5 8,-1 Q8,1 6,2 Z" fill="#ffab00" />
+      </g>
+
+      <!-- Eye -->
+      <g style="animation: blink 4s ease-in-out infinite; transform-origin: 7px -10px;">
+        <ellipse cx="7" cy="-10" rx="7.5" ry="6.5" fill="white" stroke="#2a2a2a" stroke-width="1.2" />
+        <g style="animation: eyeFollow 8s ease-in-out infinite; transform-origin: 8px -10px;">
+          <circle cx="8" cy="-11" r="4" fill="#3d2b1a" />
+          <circle cx="8" cy="-11" r="2.2" fill="#0a0a0a" />
+          <circle cx="9.5" cy="-12.5" r="1.5" fill="white" />
+          <circle cx="6.5" cy="-9.5" r="0.8" fill="white" opacity="0.6" />
+        </g>
+      </g>
+
+      <!-- Beak -->
+      <path d="M13,-9 Q18,-11 17,-7 Q15,-6 13,-6 Z" fill="#ff9800" />
+      <path d="M13,-6 Q16,-5.5 15,-3 Q13,-2 12,-4 Z" fill="#e68a00" />
+
+    </g>
+  </g>
+
+  <!-- Hearts (appear intermittently) -->
+  <g transform="translate(140, 55)">
+    <text font-size="12" style="animation: heartFloat 4s ease-out infinite; animation-delay: 0s;">&#x2764;</text>
+    <text font-size="10" style="animation: heartFloat 4s ease-out infinite; animation-delay: 1.5s;" x="15" fill="#ff6b8a">&#x2764;</text>
+    <text font-size="8" style="animation: heartFloat 4s ease-out infinite; animation-delay: 3s;" x="5" fill="#ff8fa3">&#x2764;</text>
+  </g>
+
+  <!-- Sparkles -->
+  <g transform="translate(190, 50)">
+    <text font-size="10" fill="#ffd700" style="animation: sparkle 3s ease-in-out infinite; animation-delay: 0.5s;">&#x2728;</text>
+    <text font-size="8" fill="#ffd700" style="animation: sparkle 3s ease-in-out infinite; animation-delay: 2s;" x="20" y="-10">&#x2728;</text>
+  </g>
+
+  <!-- Speech bubble -->
+  <g style="animation: bubbleFade 8s ease-in-out infinite;">
+    <rect x="20" y="60" width="110" height="32" rx="10" fill="white" opacity="0.95" />
+    <polygon points="130,72 140,80 130,82" fill="white" opacity="0.95" />
+    <text x="35" y="80" font-family="-apple-system, sans-serif" font-size="11" fill="#333">Nice keystrokes!</text>
+  </g>
+
+  <!-- Z's for sleeping (offset timing) -->
+  <g transform="translate(145, 48)" fill="#7986cb" font-family="serif" font-weight="bold">
+    <text font-size="11" style="animation: zzz1 3s ease-out infinite;" opacity="0">z</text>
+    <text font-size="9" style="animation: zzz2 3s ease-out infinite; animation-delay: 1s;" x="-5" y="-5" opacity="0">z</text>
+  </g>
+
+  <!-- App title -->
+  <text x="200" y="185" text-anchor="middle" font-family="-apple-system, Helvetica, sans-serif" font-size="11" fill="#666">clippy -- your desktop coding buddy</text>
+</svg>

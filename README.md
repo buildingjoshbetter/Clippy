@@ -16,6 +16,10 @@
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
 </p>
 
+<p align="center">
+  <img src="assets/clippy-demo.svg" alt="Clippy demo — parrot bobbing, blinking, and chatting" width="500">
+</p>
+
 ---
 
 Clippy is a desktop pet that sits on top of your screen while you work. It watches your cursor, reacts to your typing, gets excited when you scroll, and falls asleep if you walk away. It's basically a tiny friend that hangs out with you while you code.
