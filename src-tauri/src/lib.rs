@@ -1,3 +1,6 @@
+mod commands;
+mod input;
+
 use tauri::Manager;
 
 #[cfg(target_os = "macos")]
@@ -7,11 +10,6 @@ use cocoa::base::nil;
 #[cfg(target_os = "macos")]
 #[allow(unused_imports)]
 use objc::{msg_send, sel, sel_impl};
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! I'm Clippy!", name)
-}
 
 #[cfg(target_os = "macos")]
 fn setup_macos_transparency(app: &tauri::App) {
@@ -78,12 +76,26 @@ fn setup_system_tray(app: &tauri::App) -> tauri::Result<()> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_input_state,
+            commands::update_character_bounds,
+            commands::set_click_through,
+            commands::request_accessibility,
+            commands::read_ai_status,
+            commands::load_config,
+            commands::save_config,
+        ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
             setup_macos_transparency(app);
 
             setup_system_tray(app)?;
+
+            // Start keyboard/scroll event monitoring
+            input::keyboard::start_event_monitor();
+
+            // Start cursor position polling + click-through hit testing
+            input::mouse::start_hit_test_polling(app.handle().clone());
 
             Ok(())
         })
